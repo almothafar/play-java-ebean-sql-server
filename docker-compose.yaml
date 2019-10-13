@@ -1,0 +1,45 @@
+version: '3.7'
+services:
+  msdb:
+    container_name: msdb
+    volumes:
+      - msdbvol:/var/opt/mssql
+      - ./db/:/var/backups
+    image: mcr.microsoft.com/mssql/server:2017-latest
+    networks:
+      - backend
+    environment:
+      SA_PASSWORD: "AwF12@#!Das"
+      ACCEPT_EULA: Y
+      MSSQL_PID: Developer
+    ports:
+      - 1433:1433
+  backend_api:
+    container_name: backend_api
+    depends_on:
+      - db
+    build:
+      context: ./
+      dockerfile: ./Dockerfile
+    stdin_open: true
+    volumes:
+      - ./:/src
+    networks:
+      - backend
+    ports:
+      - 9000:9000
+      - 9999:9999
+    environment:
+      DB_URL: 'jdbc:sqlserver://msdb:1433;databaseName=TestDB'
+      DB_USER: SA
+      DB_PASSWORD: 'AwF12@#!Das'
+      JAVA_OPTS: "-XX:+CMSClassUnloadingEnabled  -agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=9999 -XX:ReservedCodeCacheSize=192m -Dfile.encoding=UTF8 -Dsbt.log.noformat=true"
+    entrypoint:
+      - sbt
+      - ~run
+      - -Dconfig.file=conf/development.conf
+volumes:
+  msdbvol:
+networks:
+  backend:
+    external: false
