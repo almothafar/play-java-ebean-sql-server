@@ -50,8 +50,6 @@ public class CompanyRepository {
 
     public CompletionStage<List<CompanyExtracted>> companiesByLocationFn(long locationId) {
         final String sql = "SELECT id, name, locationName, locationId FROM fnGetCompanyWithLocation (:id) result";
-
-
         return supplyAsync(() -> {
             final RawSql rawSql = RawSqlBuilder.parse(sql).create();
             return Ebean.find(CompanyExtracted.class)
@@ -59,8 +57,6 @@ public class CompanyRepository {
                     .setParameter("id", locationId)
                     .findList();
         }, executionContext);
-
-
     }
 
 }
